@@ -1,7 +1,5 @@
 require 'rubygems'
 require 'rack'
-require 'rack/request'
-require 'rack/response'
 require 'haml'
 
 class Object
