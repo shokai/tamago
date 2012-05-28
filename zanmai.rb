@@ -9,7 +9,7 @@ class Zanmai
   class View
     def self.render(template)
       template = template.read if template.kind_of? File
-      template = open("views/#{template}.haml").read if template.kind_of? Symbol
+      template = open("#{ENV['PWD']}/views/#{template}.haml").read if template.kind_of? Symbol
       raise ArgumentError, 'Argument must be instance of File or String.' unless template.kind_of? String
       Haml::Engine.new(template).render
     end
@@ -29,6 +29,12 @@ class Zanmai
           res['Content-Type'] = 'text/plain'
           res.status = 200
         }.finish
+      elsif req.path_info == '/env'
+        Rack::Response.new{|res|
+          ENV.keys.sort.each do |k|
+            res.write "#{k}=#{ENV[k]}\n"
+          end
+          }.finish
       else
         body = case req.request_method
                when 'GET'
