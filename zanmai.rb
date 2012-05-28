@@ -4,6 +4,17 @@ require 'rack'
 require 'rack/request'
 require 'rack/response'
 require 'haml'
+require 'tmp_cache'
+
+class Object
+  def method_missing(name, *args, &block)
+    case name
+    when :get, :post, :head, :delete
+      path = args[0]
+      TmpCache.set("[#{name.to_s.upcase}] #{path}", block)
+    end
+  end
+end
 
 class Zanmai
   class View
@@ -25,28 +36,15 @@ class Zanmai
       puts "[#{req.request_method}] #{req.scheme}://#{req.host_with_port}#{req.path_info}?#{req.query_string}"
       p req.params
       puts req.user_agent
-      if req.path_info == '/methods'
-        Rack::Response.new{|res|
-          req.methods.sort.each do |m|
-            res.write "#{m}\n"
-          end
-          res['Content-Type'] = 'text/plain'
-          res.status = 200
-        }.finish
-      elsif req.path_info == '/env'
+      case req.path_info
+      when '/env'
         Rack::Response.new{|res|
           ENV.keys.sort.each do |k|
             res.write "#{k}=#{ENV[k]}\n"
           end
-          }.finish
+        }.finish
       else
-        body = case req.request_method
-               when 'GET'
-                 View.render :index
-                 #'<html><body><form method="POST"><input type="submit" value="現在時刻" /></form></body></html>'
-               when 'POST'
-                 "<html><body>#{Time.now}</body></html>"
-               end
+        body = TmpCache.get("[#{req.request_method}] #{req.path_info}").call(env)
         Rack::Response.new { |r|
           r.status = 200
           r['Content-Type'] = 'text/html;charset=utf-8'
