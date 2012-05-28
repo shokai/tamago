@@ -9,7 +9,7 @@ class Object
     case name
     when :get, :post, :head, :delete
       path = args[0]
-      Tamago.cache["[#{name.to_s.upcase}] #{path}"] = block
+      Tamago.procs["[#{name.to_s.upcase}] #{path}"] = block
     when :haml
       Tamago::View.render args[0]
     end
@@ -17,8 +17,8 @@ class Object
 end
 
 class Tamago
-  def self.cache
-    @@cache ||= Hash.new
+  def self.procs
+    @@procs ||= Hash.new
   end
 
   class View
@@ -37,7 +37,7 @@ class Tamago
   class Application
     def self.call(env)
       @request = Rack::Request.new(env)
-      body = Tamago.cache["[#{@request.request_method}] #{@request.path_info}"].call(self)
+      body = Tamago.procs["[#{@request.request_method}] #{@request.path_info}"].call(self)
       Rack::Response.new { |r|
         r.status = 200
         r['Content-Type'] = 'text/html;charset=utf-8'
