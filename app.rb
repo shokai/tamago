@@ -1,12 +1,12 @@
 get '/' do
-  Tamago::View.render :index
+  haml :index
 end
 
 post '/' do
   Time.now.to_s
 end
 
-get '/methods' do
+get '/env' do
   ENV.keys.sort.map{|k|
     "#{k}=#{ENV[k]}"
   }.join("\n")

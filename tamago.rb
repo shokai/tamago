@@ -3,7 +3,6 @@ require 'rack'
 require 'rack/request'
 require 'rack/response'
 require 'haml'
-require 'tmp_cache'
 
 class Object
   def method_missing(name, *args, &block)
@@ -11,6 +10,8 @@ class Object
     when :get, :post, :head, :delete
       path = args[0]
       Tamago.cache["[#{name.to_s.upcase}] #{path}"] = block
+    when :haml
+      Tamago::View.render args[0]
     end
   end
 end
@@ -35,8 +36,8 @@ class Tamago
 
   class Application
     def self.call(env)
-      req = Rack::Request.new(env)
-      body = Tamago.cache["[#{req.request_method}] #{req.path_info}"].call(env)
+      @request = Rack::Request.new(env)
+      body = Tamago.cache["[#{@request.request_method}] #{@request.path_info}"].call(self)
       Rack::Response.new { |r|
         r.status = 200
         r['Content-Type'] = 'text/html;charset=utf-8'
