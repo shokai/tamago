@@ -3,4 +3,12 @@ Tamago
 Web Application Framework on Rack.
 
 
-see app.rb
+Install Dependencies
+--------------------
+
+    % gem install foreman bundler
+    % bundle install
+
+Run
+
+    % foreman start
