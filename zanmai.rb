@@ -8,9 +8,13 @@ require 'haml'
 class Zanmai
   class View
     def self.render(template)
-      template = template.read if template.kind_of? File
-      template = open("#{ENV['PWD']}/views/#{template}.haml").read if template.kind_of? Symbol
-      raise ArgumentError, 'Argument must be instance of File or String.' unless template.kind_of? String
+      template = case true
+                 when template.kind_of?(File)
+                   template.read
+                 when template.kind_of?(Symbol)
+                   File.open("#{ENV['PWD']}/views/#{template}.haml").read
+                 end
+      raise ArgumentError, 'Argument must be instance of File, String or Symbol.' unless template.kind_of? String
       Haml::Engine.new(template).render
     end
   end
