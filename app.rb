@@ -1,4 +1,3 @@
-
 get '/' do
   Tamago::View.render :index
 end

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 require 'rubygems'
 require 'rack'
 require 'rack/request'
@@ -11,12 +10,16 @@ class Object
     case name
     when :get, :post, :head, :delete
       path = args[0]
-      TmpCache.set("[#{name.to_s.upcase}] #{path}", block)
+      Tamago.cache["[#{name.to_s.upcase}] #{path}"] = block
     end
   end
 end
 
 class Tamago
+  def self.cache
+    @@cache ||= Hash.new
+  end
+
   class View
     def self.render(template)
       template = case true
@@ -29,28 +32,16 @@ class Tamago
       Haml::Engine.new(template).render
     end
   end
-  
+
   class Application
     def self.call(env)
       req = Rack::Request.new(env)
-      puts "[#{req.request_method}] #{req.scheme}://#{req.host_with_port}#{req.path_info}?#{req.query_string}"
-      p req.params
-      puts req.user_agent
-      case req.path_info
-      when '/env'
-        Rack::Response.new{|res|
-          ENV.keys.sort.each do |k|
-            res.write "#{k}=#{ENV[k]}\n"
-          end
-        }.finish
-      else
-        body = TmpCache.get("[#{req.request_method}] #{req.path_info}").call(env)
-        Rack::Response.new { |r|
-          r.status = 200
-          r['Content-Type'] = 'text/html;charset=utf-8'
-          r.write body
-        }.finish
-      end
+      body = Tamago.cache["[#{req.request_method}] #{req.path_info}"].call(env)
+      Rack::Response.new { |r|
+        r.status = 200
+        r['Content-Type'] = 'text/html;charset=utf-8'
+        r.write body
+      }.finish
     end
   end
 end
