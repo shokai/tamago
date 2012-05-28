@@ -1,6 +1,6 @@
 
 get '/' do
-  Zanmai::View.render :index
+  Tamago::View.render :index
 end
 
 post '/' do

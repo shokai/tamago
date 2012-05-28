@@ -16,7 +16,7 @@ class Object
   end
 end
 
-class Zanmai
+class Tamago
   class View
     def self.render(template)
       template = case true
